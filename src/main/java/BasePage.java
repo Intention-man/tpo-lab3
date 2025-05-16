@@ -2,16 +2,18 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
 
 public class BasePage {
+    protected static final int DEFAULT_WAIT_SECONDS = 20;
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected static final int DEFAULT_WAIT_SECONDS = 20;
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
@@ -44,8 +46,12 @@ public class BasePage {
         return customWait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
 
+    protected <T> T waitForCondition(Function<? super WebDriver, T> condition, int timeoutSeconds) {
+        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+        return customWait.until(condition);
+    }
 
-    protected <T> T waitForCondition(ExpectedConditions<T> condition, int timeoutSeconds) {
+    protected <T> T waitForCondition(ExpectedCondition<T> condition, int timeoutSeconds) {
         WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
         return customWait.until(condition);
     }

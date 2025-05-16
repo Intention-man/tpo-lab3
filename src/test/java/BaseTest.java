@@ -5,7 +5,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 import java.time.Duration;
 
@@ -31,9 +34,7 @@ public class BaseTest {
             options.addArguments("--window-size=1920,1080");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-//            options.addArguments("--disable-extensions");
-//            options.addArguments("--disable-plugins-discovery");
-//            options.addArguments("--blink-settings=imagesEnabled=false");
+            options.addArguments("--disable-notifications");
             driver = new ChromeDriver(options);
         } else {
             throw new IllegalArgumentException("Browser \"" + browser + "\" is not supported.");
@@ -41,7 +42,6 @@ public class BaseTest {
 
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(20));
-        // driver.manage().timeouts().setScriptTimeout(Duration.ofSeconds(10)); // Таймаут выполнения асинхронных JS, по умолчанию 30 сек, можно уменьшить если нет долгих скриптов
         driver.manage().window().maximize();
     }
 
