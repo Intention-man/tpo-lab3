@@ -18,6 +18,12 @@ public class FlightsSearchTests extends BaseTest {
     private final String DEPARTURE_CITY_SEARCH = "Москва";
     private final String ARRIVAL_CITY_SPB_SEARCH = "Санкт-П";
     private final String ARRIVAL_CITY_SOCHI_SEARCH = "Сочи";
+    private final String ARRIVAL_CITY_KGD_FULL = "Калининград";
+    private final String ARRIVAL_CITY_KGD_SEARCH = "Калининград";
+    private final String MOW_CODE = "MOW";
+    private final String LED_CODE = "LED";
+    private final String KGD_CODE = "KGD";
+
     private FlightsSearchPage flightsSearchPage;
 
     @BeforeMethod
@@ -171,6 +177,38 @@ public class FlightsSearchTests extends BaseTest {
 
         Assert.assertFalse(flightsSearchPage.isSearchButtonFunctionallyEnabled(),
                 "Search button should be functionally disabled without departure city.");
+    }
+
+    @Test(description = "TC6: Успешный поиск сложного маршрута (2 сегмента)")
+    public void testSuccessfulComplexRouteTwoSegmentsSearch() {
+        LocalDate date1 = LocalDate.now().plusDays(7);
+        LocalDate date2 = LocalDate.now().plusDays(14);
+
+        flightsSearchPage.switchToComplexRouteMode();
+
+        flightsSearchPage.enterDepartureCityForSegment(1, DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
+        flightsSearchPage.enterArrivalCityForSegment(1, ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH);
+        flightsSearchPage.selectDateForSegment(1, date1);
+
+        flightsSearchPage.enterDepartureCityForSegment(2, ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH); // Вылет из СПБ
+        flightsSearchPage.enterArrivalCityForSegment(2, ARRIVAL_CITY_KGD_FULL, ARRIVAL_CITY_KGD_SEARCH);    // Прилет в Калининград
+        flightsSearchPage.selectDateForSegment(2, date2);
+
+        flightsSearchPage.clickSearchButton();
+
+        Assert.assertTrue(flightsSearchPage.isOnResultsPage(), "Should be on search results page for complex route.");
+        String currentUrl = flightsSearchPage.getCurrentUrl();
+        String formattedDate1 = date1.format(DateTimeFormatter.ofPattern("MM-dd"));
+        String formattedDate2 = date2.format(DateTimeFormatter.ofPattern("MM-dd"));
+
+        Assert.assertTrue(currentUrl.contains(FlightsSearchPage.MULTI_WAY_PATH_SEGMENT), "URL should contain multi-way segment for complex route.");
+
+        String expectedUrlPattern = ".*/flights" + FlightsSearchPage.MULTI_WAY_PATH_SEGMENT.replace("/", "\\/") +
+                MOW_CODE + "-" + LED_CODE + "\\/" + formattedDate1 + "\\/" +
+                LED_CODE + "-" + KGD_CODE + "\\/" + formattedDate2 +
+                "/\\?.*";
+        Assert.assertTrue(currentUrl.matches(expectedUrlPattern),
+                "URL structure for complex route (2 segments) is incorrect. \nExpected pattern: " + expectedUrlPattern + "\nActual URL: " + currentUrl);
     }
 
 }

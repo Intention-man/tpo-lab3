@@ -31,6 +31,11 @@ public class BasePage {
         return customWait.until(ExpectedConditions.elementToBeClickable(locator));
     }
 
+    protected WebElement waitForElementClickable(WebElement element, int timeoutSeconds) {
+        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+        return customWait.until(ExpectedConditions.elementToBeClickable(element));
+    }
+
     protected WebElement waitForElementPresent(By locator, int timeoutSeconds) {
         WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
         return customWait.until(ExpectedConditions.presenceOfElementLocated(locator));
