@@ -9,6 +9,7 @@ import java.time.Duration;
 
 public class AuthPage extends BasePage {
 
+    final By resendCodeButtonXPath = By.xpath("//div[contains(@class, '_Content_') and text()='Отправить еще раз']");
     private final By personalCabinetLinkXPath = By.xpath("//span[normalize-space(text())='Личный кабинет']");
     private final By internetBankButtonXPath = By.xpath("//a[.//span[normalize-space(text())='Интернет-банк']]");
     private final By phoneInputXPath = By.xpath("//input[@automation-id='phone-input' and @type='tel']");
@@ -16,7 +17,6 @@ public class AuthPage extends BasePage {
     private final By errorMessageXPath = By.xpath("//p[@automation-id='server-error' and contains(text(), 'Некорректный номер телефона')]");
     private final By codeInputXPath = By.xpath("//input[@automation-id='otp-input' and @placeholder='••••']");
     private final By errorMessageCodeXPath = By.xpath("//p[@automation-id='server-error' and contains(@class, '_Color_error')]");
-    final By resendCodeButtonXPath = By.xpath("//div[contains(@class, '_Content_') and text()='Отправить еще раз']");
 
     public AuthPage(WebDriver driver) {
         super(driver);

@@ -11,17 +11,19 @@ import java.util.Set;
 
 
 public class FlightsSearchTests extends BaseTest {
+    private final String MOSCOW_FULL = "Москва";
+    private final String SPB_FULL = "Санкт-Петербург";
+    private final String SOCHI_FULL = "Сочи";
+    private final String KGD_FULL = "Калининград";
 
-    private final String DEPARTURE_CITY_FULL = "Москва";
-    private final String ARRIVAL_CITY_SPB_FULL = "Санкт-Петербург";
-    private final String ARRIVAL_CITY_SOCHI_FULL = "Сочи";
-    private final String DEPARTURE_CITY_SEARCH = "Москва";
-    private final String ARRIVAL_CITY_SPB_SEARCH = "Санкт-П";
-    private final String ARRIVAL_CITY_SOCHI_SEARCH = "Сочи";
-    private final String ARRIVAL_CITY_KGD_FULL = "Калининград";
-    private final String ARRIVAL_CITY_KGD_SEARCH = "Калининград";
+    private final String MOSCOW_SEARCH = "Москва";
+    private final String SPB_SEARCH = "Санкт-П";
+    private final String SOCHI_SEARCH = "Сочи";
+    private final String KGD_SEARCH = "Калининград";
+
     private final String MOW_CODE = "MOW";
     private final String LED_CODE = "LED";
+    private final String AER_CODE = "AER";
     private final String KGD_CODE = "KGD";
 
     private FlightsSearchPage flightsSearchPage;
@@ -32,8 +34,8 @@ public class FlightsSearchTests extends BaseTest {
         flightsSearchPage.open();
     }
 
-    private String switchToNewTab(String originalWindowHandle, Set<String> originalHandles) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Ожидание появления новой вкладки
+    private void switchToNewTab(String originalWindowHandle, Set<String> originalHandles) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         wait.until(ExpectedConditions.numberOfWindowsToBe(originalHandles.size() + 1));
 
@@ -54,37 +56,33 @@ public class FlightsSearchTests extends BaseTest {
             System.err.println("Could not find the new tab handle. Current handles: " + allHandles);
             Assert.fail("Failed to find and switch to the new results tab.");
         }
-        return newWindowHandle;
     }
 
     @Test(description = "TC1: Успешный поиск билета в одну сторону")
     public void testSuccessfulOneWayFlightSearch() {
-        flightsSearchPage.enterDepartureCity(DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
-        flightsSearchPage.enterArrivalCity(ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH);
+        flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
+        flightsSearchPage.enterArrivalCityForSegment(1, SPB_FULL, SPB_SEARCH);
         LocalDate departureDate = LocalDate.now().plusDays(7);
 
-        flightsSearchPage.openCalendar();
+        flightsSearchPage.openCalendarForSegment(1);
         flightsSearchPage.selectOneWayTripModeInCalendar();
         flightsSearchPage.selectDepartureDate(departureDate);
         flightsSearchPage.ensureCalendarClosed();
 
-        Assert.assertTrue(flightsSearchPage.isReturnDateEffectivelyEmptyOrDisabled(),
-                "Mode should indicate one-way trip or calendar should be closed.");
+        Assert.assertTrue(flightsSearchPage.isReturnDateEffectivelyEmptyOrDisabled());
 
         String originalWindowHandle = driver.getWindowHandle();
         Set<String> originalHandles = driver.getWindowHandles();
         flightsSearchPage.clickSearchButton();
         switchToNewTab(originalWindowHandle, originalHandles);
 
-        Assert.assertTrue(flightsSearchPage.isOnResultsPage(), "Should be on search results page in the new tab.");
+        Assert.assertTrue(flightsSearchPage.isOnResultsPage());
         String currentUrl = flightsSearchPage.getCurrentUrl();
         String formattedDepartureDate = departureDate.format(DateTimeFormatter.ofPattern("MM-dd"));
-
-        Assert.assertTrue(currentUrl.contains(FlightsSearchPage.ONE_WAY_PATH_SEGMENT), "URL should contain '" + FlightsSearchPage.ONE_WAY_PATH_SEGMENT + "'.");
-        Assert.assertTrue(currentUrl.contains("/MOW-LED/"), "URL should contain departure-arrival codes like '/MOW-LED/'.");
+        Assert.assertTrue(currentUrl.contains(FlightsSearchPage.ONE_WAY_PATH_SEGMENT));
+        Assert.assertTrue(currentUrl.contains("/" + MOW_CODE + "-" + LED_CODE + "/"));
         String oneWayRegexSegment = FlightsSearchPage.ONE_WAY_PATH_SEGMENT.replace("/", "\\/");
-        Assert.assertTrue(currentUrl.matches(".*/flights" + oneWayRegexSegment + "[A-Z]{3}-[A-Z]{3}/" + formattedDepartureDate + "/\\?.*"),
-                "URL structure for one-way trip is incorrect. Expected format like .../flights/one-way/MOW-LED/MM-dd/?...");
+        Assert.assertTrue(currentUrl.matches(".*/flights" + oneWayRegexSegment + MOW_CODE + "-" + LED_CODE + "\\/" + formattedDepartureDate + "/\\?.*"));
     }
 
     @Test(description = "TC2: Успешный поиск билета туда-обратно (multi-way)")
@@ -92,8 +90,8 @@ public class FlightsSearchTests extends BaseTest {
         String departureCityCodeForUrl = "MOW";
         String arrivalCityCodeForUrl = "AER";
 
-        flightsSearchPage.enterDepartureCity(DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
-        flightsSearchPage.enterArrivalCity(ARRIVAL_CITY_SOCHI_FULL, ARRIVAL_CITY_SOCHI_SEARCH);
+        flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
+        flightsSearchPage.enterArrivalCityForSegment(1, SOCHI_FULL, SOCHI_SEARCH);
         LocalDate departureDate = LocalDate.now().plusDays(10);
         LocalDate returnDate = LocalDate.now().plusDays(17);
         flightsSearchPage.openCalendar();
@@ -135,7 +133,8 @@ public class FlightsSearchTests extends BaseTest {
     @Test(description = "TC3: Попытка поиска без указания города отправления")
     public void testSearchWithoutDepartureCity() {
         flightsSearchPage.clearDepartureCity();
-        flightsSearchPage.enterArrivalCity(ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH);
+
+        flightsSearchPage.enterArrivalCityForSegment(1, SPB_FULL, SPB_SEARCH);
 
         flightsSearchPage.openCalendar();
         flightsSearchPage.selectOneWayTripModeInCalendar();
@@ -148,7 +147,7 @@ public class FlightsSearchTests extends BaseTest {
 
     @Test(description = "TC4: Попытка поиска без указания города назначения")
     public void testSearchWithoutArrivalCity() {
-        flightsSearchPage.enterDepartureCity(DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
+        flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
 
         flightsSearchPage.openCalendar();
         flightsSearchPage.selectOneWayTripModeInCalendar();
@@ -161,8 +160,8 @@ public class FlightsSearchTests extends BaseTest {
 
     @Test(description = "TC5: Попытка поиска с одинаковыми городами отправления и назначения")
     public void testSearchWithSameDepartureAndArrivalCity() {
-        flightsSearchPage.enterDepartureCity(DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
-        flightsSearchPage.enterArrivalCity(DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
+        flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
+        flightsSearchPage.enterArrivalCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
 
         try {
             flightsSearchPage.openCalendar();
@@ -186,12 +185,12 @@ public class FlightsSearchTests extends BaseTest {
 
         flightsSearchPage.switchToComplexRouteMode();
 
-        flightsSearchPage.enterDepartureCityForSegment(1, DEPARTURE_CITY_FULL, DEPARTURE_CITY_SEARCH);
-        flightsSearchPage.enterArrivalCityForSegment(1, ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH);
+        flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
+        flightsSearchPage.enterArrivalCityForSegment(1, SPB_FULL, SPB_SEARCH);
         flightsSearchPage.selectDateForSegment(1, date1);
 
-        flightsSearchPage.enterDepartureCityForSegment(2, ARRIVAL_CITY_SPB_FULL, ARRIVAL_CITY_SPB_SEARCH); // Вылет из СПБ
-        flightsSearchPage.enterArrivalCityForSegment(2, ARRIVAL_CITY_KGD_FULL, ARRIVAL_CITY_KGD_SEARCH);    // Прилет в Калининград
+        flightsSearchPage.enterDepartureCityForSegment(2, SPB_FULL, SPB_SEARCH); // Вылет из СПБ
+        flightsSearchPage.enterArrivalCityForSegment(2, KGD_FULL, KGD_SEARCH);    // Прилет в Калининград
         flightsSearchPage.selectDateForSegment(2, date2);
 
         flightsSearchPage.clickSearchButton();

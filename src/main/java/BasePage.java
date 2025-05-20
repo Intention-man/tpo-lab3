@@ -8,7 +8,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.function.Function;
 
 public class BasePage {
     protected static final int DEFAULT_WAIT_SECONDS = 20;
@@ -26,14 +25,9 @@ public class BasePage {
         return customWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
-    protected WebElement waitForElementClickable(By locator, int timeoutSeconds) {
-        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+    protected WebElement waitForElementClickable(By locator) {
+        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(BasePage.DEFAULT_WAIT_SECONDS));
         return customWait.until(ExpectedConditions.elementToBeClickable(locator));
-    }
-
-    protected WebElement waitForElementClickable(WebElement element, int timeoutSeconds) {
-        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
-        return customWait.until(ExpectedConditions.elementToBeClickable(element));
     }
 
     protected WebElement waitForElementPresent(By locator, int timeoutSeconds) {
@@ -51,13 +45,8 @@ public class BasePage {
         return customWait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
 
-    protected <T> T waitForCondition(Function<? super WebDriver, T> condition, int timeoutSeconds) {
+    protected <T> void waitForCondition(ExpectedCondition<T> condition, int timeoutSeconds) {
         WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
-        return customWait.until(condition);
-    }
-
-    protected <T> T waitForCondition(ExpectedCondition<T> condition, int timeoutSeconds) {
-        WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
-        return customWait.until(condition);
+        customWait.until(condition);
     }
 }

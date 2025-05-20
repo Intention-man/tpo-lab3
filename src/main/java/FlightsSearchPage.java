@@ -1,5 +1,4 @@
 import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -19,7 +18,6 @@ public class FlightsSearchPage extends BasePage {
     final By toInputXPath = By.xpath("//input[@aria-labelledby='Input_Куда']");
     final By searchButtonXPath = By.xpath("//button[@data-qa-type='uikit/button' and descendant::span[normalize-space(text())='Найти']]");
 
-    private final String PAGE_URL = "https://www.tbank.ru/travel/flights/";
     private final By pageHeaderForUnfocusClickXPath = By.xpath("//h1[@data-test='htmlTag title']");
     private final By departureDateOpenButtonXPath = By.xpath("//div[starts-with(@data-qa-type, 'DateTextInput_') and .//span[@data-qa-type='uikit/inputBox.label' and normalize-space(text())='Когда']]");
 
@@ -31,8 +29,6 @@ public class FlightsSearchPage extends BasePage {
     private final By calendarMonthYearHeaderXPath = By.xpath("//div[@data-qa-file='CalendarHeader']"); // Заголовок месяца/года
     private final By calendarNextMonthButtonXPath = By.xpath("//span[@role='button' and @aria-label='Вперед' and @data-qa-file='DateSwiper' and @aria-disabled='false']");
 
-    private final By fromFieldErrorXPath = By.xpath("//input[@aria-labelledby='Input_Откуда']/ancestor::div[count(input)=1 and count(div)>0][1]/following-sibling::div[contains(@class, 'Error') or contains(@data-qa-type, 'Error')]");
-    private final By toFieldErrorXPath = By.xpath("//input[@aria-labelledby='Input_Куда']/ancestor::div[count(input)=1 and count(div)>0][1]/following-sibling::div[contains(@class, 'Error') or contains(@data-qa-type, 'Error')]");
     private final By flightOfferCardXPath = By.xpath("//div[@data-qa-tag='panelFlightOfferCardLayout']");
 
     private final String ROUTE_SEGMENT_CONTAINER_BASE_XPATH = "//div[@data-qa-tag='travelSearchFormRoute']";
@@ -42,6 +38,7 @@ public class FlightsSearchPage extends BasePage {
     }
 
     public void open() {
+        String PAGE_URL = "https://www.tbank.ru/travel/flights/";
         driver.get(PAGE_URL);
         wait.until(ExpectedConditions.visibilityOfElementLocated(mainFormContainerXPath));
         wait.until(ExpectedConditions.visibilityOfElementLocated(fromInputXPath));
@@ -57,10 +54,12 @@ public class FlightsSearchPage extends BasePage {
         if (segmentIndex < 1) throw new IllegalArgumentException("Segment index must be 1 or greater.");
         return By.xpath(String.format("(%s)[%d]//input[@aria-labelledby='Input_Откуда']", ROUTE_SEGMENT_CONTAINER_BASE_XPATH, segmentIndex));
     }
+
     private By getToInputXPathForSegment(int segmentIndex) {
         if (segmentIndex < 1) throw new IllegalArgumentException("Segment index must be 1 or greater.");
         return By.xpath(String.format("(%s)[%d]//input[@aria-labelledby='Input_Куда']", ROUTE_SEGMENT_CONTAINER_BASE_XPATH, segmentIndex));
     }
+
     private By getDepartureDateOpenButtonXPathForSegment(int segmentIndex) {
         if (segmentIndex < 1) throw new IllegalArgumentException("Segment index must be 1 or greater.");
         return By.xpath(String.format("(%s)[%d]//div[starts-with(@data-qa-type, 'DateTextInput_') and .//span[normalize-space(text())='Когда']]", ROUTE_SEGMENT_CONTAINER_BASE_XPATH, segmentIndex));
@@ -83,158 +82,66 @@ public class FlightsSearchPage extends BasePage {
         );
     }
 
-    private void enterCity(By inputLocator, String cityFullName, String citySearchTerm) {
-        WebElement inputField;
-        try {
-            inputField = wait.until(ExpectedConditions.presenceOfElementLocated(inputLocator));
-
-            boolean isProblematicScenario = false;
-            if (inputLocator.equals(toInputXPath)) {
-                try {
-                    String fromValue = driver.findElement(fromInputXPath).getAttribute("value");
-                    if (fromValue == null || fromValue.isEmpty()) {
-                        isProblematicScenario = true;
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-
-            if (isProblematicScenario) {
-                try {
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", inputField);
-                    Thread.sleep(100);
-                } catch (Exception ignored) {
-                }
-
-                try {
-                    new Actions(driver).moveToElement(inputField).click().perform();
-                } catch (Exception e1) {
-                    try {
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", inputField);
-                    } catch (Exception e2) {
-                        System.err.println("CRITICAL: Failed to click input field " + inputLocator + " even with Actions and JS. Error: " + e2.getMessage());
-                    }
-                }
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } // Пауза после клика
-            } else {
-                wait.until(ExpectedConditions.elementToBeClickable(inputField));
-                inputField.click();
-            }
-
-            clearInputField(inputField);
-            inputField.sendKeys(citySearchTerm);
-
-        } catch (TimeoutException e) {
-            System.err.println("TimeoutException during enterCity for " + inputLocator + ". FullName: " + cityFullName + ". SearchTerm: " + citySearchTerm);
-            throw e;
-        } catch (Exception e) {
-            System.err.println("Unexpected Exception during enterCity for " + inputLocator + ". FullName: " + cityFullName + ". SearchTerm: " + citySearchTerm);
-            e.printStackTrace();
-            throw e;
-        }
-
-        By citySuggestionActualXPath = By.xpath(citySuggestionXPath(citySearchTerm.split(",")[0]));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(citySuggestionActualXPath));
-        WebElement suggestion = wait.until(ExpectedConditions.elementToBeClickable(citySuggestionActualXPath));
-        suggestion.click();
-
-        wait.until(ExpectedConditions.attributeContains(inputField, "value", cityFullName.split(",")[0]));
-    }
-
-    private void enterCity(By inputLocator, String cityFullName, String citySearchTerm, int segmentIndexForProblemCheck) {
+    private void enterCity(By inputLocator, String cityFullName, String citySearchTerm, int segmentIndex) {
+        System.out.println("==> enterCity: Processing input " + inputLocator + " for segment " + segmentIndex + " with city: " + cityFullName);
         WebElement inputField = waitForElementPresent(inputLocator, DEFAULT_WAIT_SECONDS);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", inputField);
 
-        boolean isProblematicScenario = false;
-        if (inputLocator.equals(getToInputXPathForSegment(segmentIndexForProblemCheck))) {
-            try {
-                WebElement fromFieldForThisSegment = driver.findElement(getFromInputXPathForSegment(segmentIndexForProblemCheck));
-                String fromValue = fromFieldForThisSegment.getAttribute("value");
-                if (fromValue == null || fromValue.isEmpty()) {
-                    isProblematicScenario = true;
-                }
-            } catch (NoSuchElementException ignored) {}
-        }
+        System.out.println("    Clearing and sending keys to " + inputLocator + " (Segment " + segmentIndex + ")");
+        clearInputField(inputField);
 
-        if (isProblematicScenario) {
-            System.out.println("    Applying JS click for problematic scenario " + inputLocator);
-            try {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true); arguments[0].click();", inputField);
-                Thread.sleep(200); // Пауза после JS клика
-            } catch (Exception e) {
-                System.err.println("    JS click failed for " + inputLocator + ". Error: " + e.getMessage());
-                // Если JS клик не прошел, возможно, элемент действительно недоступен
-                // Можно попробовать стандартный клик как fallback, но это маловероятно поможет, если JS не смог
-                // waitForElementClickable(inputField, 5).click(); // Короткая попытка стандартного
-            }
-        } else {
-            waitForElementClickable(inputField, DEFAULT_WAIT_SECONDS).click();
-        }
-
-        clearInputField(inputField); // Используем новый, упрощенный clearInputField
-
-        // Прямой ввод текста, если sendKeys надежен после активации/очистки
         inputField.sendKeys(citySearchTerm);
         String valueAfterSendKeys = inputField.getAttribute("value");
-        System.out.println("    Value after sendKeys for " + inputLocator + ": '" + valueAfterSendKeys + "'");
         if (!valueAfterSendKeys.toLowerCase().contains(citySearchTerm.toLowerCase().split(",")[0])) {
-            System.err.println("    WARNING: sendKeys for " + inputLocator + " might not have worked. Re-attempting with JS value set.");
+            System.err.println("    WARNING: sendKeys for " + inputLocator + " might not have worked. Value: '" + valueAfterSendKeys + "'. Attempting JS value set.");
             ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", inputField, citySearchTerm);
             ((JavascriptExecutor) driver).executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputField);
             ((JavascriptExecutor) driver).executeScript("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", inputField);
-            System.out.println("    Value after JS value set for " + inputLocator + ": '" + inputField.getAttribute("value") + "'");
         }
 
-        // Обработка выпадающего списка (оставляем как есть, с коротким ожиданием)
         By citySuggestionActualXPath = By.xpath(citySuggestionXPath(citySearchTerm.split(",")[0]));
         try {
             WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(7));
             WebElement suggestion = shortWait.until(ExpectedConditions.elementToBeClickable(citySuggestionActualXPath));
             suggestion.click();
-            WebElement finalInputField = waitForElementPresent(inputLocator, DEFAULT_WAIT_SECONDS); // Перенаходим
+            WebElement finalInputField = waitForElementPresent(inputLocator, DEFAULT_WAIT_SECONDS);
             wait.until(ExpectedConditions.attributeContains(finalInputField, "value", cityFullName.split(",")[0]));
+            System.out.println("    City '" + cityFullName + "' selected from suggestion for " + inputLocator + " (Segment " + segmentIndex + ")");
         } catch (TimeoutException e) {
-            System.out.println("    Suggestion list for '" + citySearchTerm + "' did not appear/was not clickable in 7s.");
-            // Проверяем, что значение осталось корректным после прямого ввода
+            System.out.println("    Suggestion list for '" + citySearchTerm + "' (input: " + inputLocator + ", Segment " + segmentIndex + ") did not appear or was not clickable in 7s.");
             try {
                 WebElement finalInputField = waitForElementPresent(inputLocator, DEFAULT_WAIT_SECONDS);
                 String finalValue = finalInputField.getAttribute("value");
-                String expectedValueSegment = cityFullName.split(",")[0];
-                String searchTermSegment = citySearchTerm.split(",")[0];
-                if (!finalValue.toLowerCase().contains(expectedValueSegment.toLowerCase()) &&
-                        !finalValue.toLowerCase().contains(searchTermSegment.toLowerCase())) {
-                    System.err.println("    WARN: Final value in input " + inputLocator + " is '" + finalValue +
-                            "' but expected something containing '" + expectedValueSegment + "' or '" + searchTermSegment + "'.");
+                String expectedValueCore = cityFullName.split(",")[0];
+                String searchTermCore = citySearchTerm.split(",")[0];
+                if (!(finalValue.toLowerCase().contains(expectedValueCore.toLowerCase()) || finalValue.toLowerCase().contains(searchTermCore.toLowerCase()))) {
+                    System.err.println("    WARN: Final value in " + inputLocator + " is '" + finalValue + "' but expected something containing '" + expectedValueCore + "' or '" + searchTermCore + "'.");
                 }
             } catch (Exception valEx) {
-                System.err.println("    Error checking final input field value: " + valEx.getMessage());
+                System.err.println("    Error checking final input field value for " + inputLocator + ": " + valEx.getMessage());
             }
-        } catch (StaleElementReferenceException ignored) {}
+        } catch (StaleElementReferenceException e) {
+            System.err.println("    StaleElementReferenceException when interacting with suggestion for " + inputLocator + ". This may need a retry loop.");
+            try {
+                Thread.sleep(300);
+                WebElement suggestionRetry = new WebDriverWait(driver, Duration.ofSeconds(5)).until(ExpectedConditions.elementToBeClickable(citySuggestionActualXPath));
+                suggestionRetry.click();
+                WebElement finalInputFieldRetry = waitForElementPresent(inputLocator, DEFAULT_WAIT_SECONDS);
+                wait.until(ExpectedConditions.attributeContains(finalInputFieldRetry, "value", cityFullName.split(",")[0]));
+                System.out.println("    City '" + cityFullName + "' selected from suggestion on retry for " + inputLocator + " (Segment " + segmentIndex + ")");
+            } catch (Exception retryEx) {
+                System.err.println("    Retry for StaleElementReferenceException on suggestion also failed for " + inputLocator + ": " + retryEx.getMessage());
+            }
+        }
+        System.out.println("==> enterCity finished for: " + inputLocator);
     }
-
 
     public void enterDepartureCityForSegment(int segmentIndex, String cityFullName, String citySearchTerm) {
         enterCity(getFromInputXPathForSegment(segmentIndex), cityFullName, citySearchTerm, segmentIndex);
     }
-    public void enterDepartureCityForSegment(int segmentIndex, String cityFullName) {
-        enterCity(getFromInputXPathForSegment(segmentIndex), cityFullName, cityFullName, segmentIndex);
-    }
+
     public void enterArrivalCityForSegment(int segmentIndex, String cityFullName, String citySearchTerm) {
         enterCity(getToInputXPathForSegment(segmentIndex), cityFullName, citySearchTerm, segmentIndex);
-    }
-    public void enterArrivalCityForSegment(int segmentIndex, String cityFullName) {
-        enterCity(getToInputXPathForSegment(segmentIndex), cityFullName, cityFullName, segmentIndex);
-    }
-
-    public void enterDepartureCity(String cityFullName, String citySearchTerm) {
-        enterCity(fromInputXPath, cityFullName, citySearchTerm);
-    }
-
-    public void enterArrivalCity(String cityFullName, String citySearchTerm) {
-        enterCity(toInputXPath, cityFullName, citySearchTerm);
     }
 
     private void clearInputField(WebElement inputField) {
@@ -242,20 +149,12 @@ public class FlightsSearchPage extends BasePage {
         final int JS_RETRY_DELAY_MS = 200;
 
         try {
-            // 0. Убедимся, что элемент видим и активен перед попытками
             if (!inputField.isDisplayed() || !inputField.isEnabled()) {
-                System.err.println("Input field for clearing is not displayed or not enabled. Locator: " + inputField.toString());
-                // Попробовать прокрутить и подождать кликабельности, если не видим/не активен
-                try {
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", inputField);
-                    new WebDriverWait(driver, Duration.ofSeconds(2)).until(ExpectedConditions.elementToBeClickable(inputField));
-                } catch (Exception e) {
-                    System.err.println("Failed to make field visible/clickable before clearing: " + e.getMessage());
-                    // Если даже после этого не доступен, JS может не сработать
-                }
+                System.err.println("Input field for clearing is not displayed or not enabled. Locator: " + inputField);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", inputField);
+                new WebDriverWait(driver, Duration.ofSeconds(2)).until(ExpectedConditions.elementToBeClickable(inputField));
             }
 
-            // 1. Попытка стандартного element.clear() - иногда он лучше всего работает с обработчиками событий
             try {
                 inputField.clear();
                 if (inputField.getAttribute("value").isEmpty()) {
@@ -266,12 +165,9 @@ public class FlightsSearchPage extends BasePage {
                 System.err.println("element.clear() failed: " + e.getMessage());
             }
 
-            // 2. Попытка выделить все и удалить (Ctrl/Cmd+A -> DELETE)
-            // Этот метод может быть менее надежен, если JS активно мешает
             try {
-                // Клик для фокуса
                 inputField.click();
-                Thread.sleep(50); // Короткая пауза для фокуса
+                Thread.sleep(50);
                 String os = System.getProperty("os.name").toLowerCase();
                 Keys commandOrControl = os.contains("mac") ? Keys.COMMAND : Keys.CONTROL;
                 inputField.sendKeys(Keys.chord(commandOrControl, "a"));
@@ -286,17 +182,17 @@ public class FlightsSearchPage extends BasePage {
             }
 
 
-            // 3. Агрессивная очистка через JavaScript с несколькими попытками
-            // Это самый надежный способ изменить DOM, но он может не триггерить некоторые JS-события на странице.
             System.out.println("Standard clear methods failed or skipped. Attempting JS clear. Initial value: '" + inputField.getAttribute("value") + "'");
             for (int i = 0; i < MAX_JS_CLEAR_ATTEMPTS; i++) {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", inputField);
-                // Диспетчеризуем события, чтобы попытаться уведомить фреймворк об изменении
                 ((JavascriptExecutor) driver).executeScript("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", inputField);
                 ((JavascriptExecutor) driver).executeScript("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", inputField);
 
-                // Проверяем значение после небольшой паузы
-                try { Thread.sleep(JS_RETRY_DELAY_MS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                try {
+                    Thread.sleep(JS_RETRY_DELAY_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
 
                 String currentValue = inputField.getAttribute("value");
                 if (currentValue.isEmpty()) {
@@ -306,14 +202,10 @@ public class FlightsSearchPage extends BasePage {
                 System.out.println("JS clear attempt " + (i + 1) + " did not result in empty field. Value: '" + currentValue + "'");
             }
 
-            // Если мы дошли сюда, значит, все попытки провалились
-            System.err.println("CRITICAL: All clear methods failed for input field. Final value: '" + inputField.getAttribute("value") + "'. Locator: " + inputField.toString());
-            // Возможно, стоит выбросить исключение, чтобы тест явно упал на этом этапе
-            // throw new RuntimeException("Failed to clear input field: " + inputField.toString());
+            System.err.println("CRITICAL: All clear methods failed for input field. Final value: '" + inputField.getAttribute("value") + "'. Locator: " + inputField);
 
-        } catch (Exception e) { // Общий try-catch для всего метода clearInputField
+        } catch (Exception e) {
             System.err.println("CRITICAL: Unexpected exception in clearInputField for locator: " + (inputField != null ? inputField.toString() : "UNKNOWN") + ". Error: " + e.getMessage());
-            // e.printStackTrace(); // Можно добавить для полной диагностики
         }
     }
 
@@ -325,28 +217,13 @@ public class FlightsSearchPage extends BasePage {
         clickOutsideToUnfocus();
     }
 
-    public void clearDepartureCityForSegment(int segmentIndex) {
-        WebElement fromField = waitForElementClickable(getFromInputXPathForSegment(segmentIndex), DEFAULT_WAIT_SECONDS);
-        fromField.click();
-        clearInputField(fromField);
-        clickOutsideToUnfocus();
-    }
-    public void clearArrivalCityForSegment(int segmentIndex) {
-        WebElement toField = waitForElementClickable(getToInputXPathForSegment(segmentIndex), DEFAULT_WAIT_SECONDS);
-        toField.click();
-        clearInputField(toField);
-        clickOutsideToUnfocus();
-    }
-
     void clickOutsideToUnfocus() {
         try {
-            WebElement elementToClick = waitForElementPresent(pageHeaderForUnfocusClickXPath, 5);
-            elementToClick.click();
-            elementToClick.click();
-            elementToClick.click();
-            System.out.println("Clicked on element (" + pageHeaderForUnfocusClickXPath + ") to unfocus.");
-        } catch (Exception e) {
-            System.err.println("Warning: Could not click on element " + pageHeaderForUnfocusClickXPath + " to unfocus. " + e.getMessage());
+            waitForElementPresent(pageHeaderForUnfocusClickXPath, 3).click();
+            WebElement elementToClick = waitForElementPresent(pageHeaderForUnfocusClickXPath, 3);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", elementToClick);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", elementToClick);
+        } catch (Exception ignored) {
         }
     }
 
@@ -359,7 +236,7 @@ public class FlightsSearchPage extends BasePage {
     }
 
     public void openCalendarForSegment(int segmentIndex) {
-        WebElement dateButton = waitForElementClickable(getDepartureDateOpenButtonXPathForSegment(segmentIndex), DEFAULT_WAIT_SECONDS);
+        WebElement dateButton = waitForElementClickable(getDepartureDateOpenButtonXPathForSegment(segmentIndex));
         dateButton.click();
         waitForElementVisible(calendarContainerXPath, DEFAULT_WAIT_SECONDS);
         waitForElementVisible(calendarMonthYearHeaderXPath, DEFAULT_WAIT_SECONDS);
@@ -445,7 +322,7 @@ public class FlightsSearchPage extends BasePage {
     }
 
     public void switchToComplexRouteMode() {
-        waitForElementClickable(complexRouteButtonXPath, DEFAULT_WAIT_SECONDS).click();
+        waitForElementClickable(complexRouteButtonXPath).click();
 
         List<WebElement> segments = waitForNumberOfElementsToBeMoreThan(
                 By.xpath(ROUTE_SEGMENT_CONTAINER_BASE_XPATH),
@@ -512,11 +389,9 @@ public class FlightsSearchPage extends BasePage {
             return false;
         } catch (Exception e) {
             System.err.println("An unexpected error occurred during isOnResultsPage check. Current URL: " + driver.getCurrentUrl());
-            e.printStackTrace();
             return false;
         }
     }
-
 
     public boolean isSearchButtonFunctionallyEnabled() {
         WebElement button = wait.until(ExpectedConditions.visibilityOfElementLocated(searchButtonXPath));
