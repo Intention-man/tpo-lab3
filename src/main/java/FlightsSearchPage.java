@@ -21,12 +21,12 @@ public class FlightsSearchPage extends BasePage {
     private final By pageHeaderForUnfocusClickXPath = By.xpath("//h1[@data-test='htmlTag title']");
     private final By departureDateOpenButtonXPath = By.xpath("//div[starts-with(@data-qa-type, 'DateTextInput_') and .//span[@data-qa-type='uikit/inputBox.label' and normalize-space(text())='Когда']]");
 
-    private final By oneWayTripModeButtonXPath = By.xpath("//button[@data-qa-file='Tabs' and normalize-space(.)='В одну сторону']"); // Кнопка режима ВНУТРИ календаря
+    private final By oneWayTripModeButtonXPath = By.xpath("//button[@data-qa-file='Tabs' and normalize-space(.)='В одну сторону']");
     private final By roundTripModeButtonXPath = By.xpath("//button[@data-qa-file='Tabs' and normalize-space(.)='Туда-обратно']");
     private final By complexRouteButtonXPath = By.xpath("//button[@data-qa-file='SwitchRouteButton' and .//span[normalize-space(text())='Сложный маршрут']]");
 
     private final By calendarContainerXPath = By.xpath("//div[@data-qa-file='DaySelector']");
-    private final By calendarMonthYearHeaderXPath = By.xpath("//div[@data-qa-file='CalendarHeader']"); // Заголовок месяца/года
+    private final By calendarMonthYearHeaderXPath = By.xpath("//div[@data-qa-file='CalendarHeader']");
     private final By calendarNextMonthButtonXPath = By.xpath("//span[@role='button' and @aria-label='Вперед' and @data-qa-file='DateSwiper' and @aria-disabled='false']");
 
     private final By flightOfferCardXPath = By.xpath("//div[@data-qa-tag='panelFlightOfferCardLayout']");
@@ -172,7 +172,7 @@ public class FlightsSearchPage extends BasePage {
                 Keys commandOrControl = os.contains("mac") ? Keys.COMMAND : Keys.CONTROL;
                 inputField.sendKeys(Keys.chord(commandOrControl, "a"));
                 inputField.sendKeys(Keys.DELETE);
-                Thread.sleep(50); // Пауза для обработки
+                Thread.sleep(50);
                 if (inputField.getAttribute("value").isEmpty()) {
                     System.out.println("Input field cleared with Ctrl/Cmd+A -> DELETE.");
                     return;

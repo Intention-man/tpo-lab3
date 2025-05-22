@@ -21,20 +21,11 @@ public class BaseTest {
     public void setUp(@Optional("chrome") String browser) {
         if (browser.equalsIgnoreCase("firefox")) {
             WebDriverManager.firefoxdriver().setup();
-            FirefoxOptions options = new FirefoxOptions();
-            // options.addArguments("--headless");
+            FirefoxOptions options = getFirefoxOptions();
             driver = new FirefoxDriver(options);
         } else if (browser.equalsIgnoreCase("chrome")) {
             WebDriverManager.chromedriver().setup();
-            ChromeOptions options = new ChromeOptions();
-            options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-            options.addArguments("--remote-allow-origins=*");
-            // options.addArguments("--headless");
-            options.addArguments("--disable-gpu");
-            options.addArguments("--window-size=1920,1080");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-notifications");
+            ChromeOptions options = getChromeOptions();
             driver = new ChromeDriver(options);
         } else {
             throw new IllegalArgumentException("Browser \"" + browser + "\" is not supported.");
@@ -43,6 +34,36 @@ public class BaseTest {
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(20));
         driver.manage().window().maximize();
+    }
+
+    private static ChromeOptions getChromeOptions() {
+        ChromeOptions options = new ChromeOptions();
+        options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+        options.addArguments("--width=1920");
+        options.addArguments("--height=1080");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-notifications");
+        return options;
+    }
+
+    private static FirefoxOptions getFirefoxOptions() {
+        FirefoxOptions options = new FirefoxOptions();
+//        options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+//        options.addArguments("--width=1920");
+//        options.addArguments("--height=1080");
+//        options.addArguments("--disable-gpu");
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        options.addPreference("dom.webnotifications.enabled", false);
+//        options.addPreference("dom.push.enabled", false);
+//        options.addPreference("network.http.pipelining", true);
+//        options.addPreference("network.http.proxy.pipelining", true);
+//        options.addPreference("browser.cache.disk.enable", false);
+//        options.addPreference("browser.cache.memory.enable", true);
+//        options.addPreference("browser.cache.offline.enable", false);
+        return options;
     }
 
     @AfterMethod(alwaysRun = true)
