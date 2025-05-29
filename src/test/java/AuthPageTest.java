@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 public class AuthPageTest extends BaseTest {
 
-    private final String VALID_PHONE = "+79058954595";
+    private final String VALID_PHONE = "+79609639611";
     private final String INVALID_PHONE = "+5";
     private final String INVALID_CODE = "000000";
     private final By passwordHeaderXPath = By.xpath("//h1[@automation-id='form-title' and text()='Введите пароль']");

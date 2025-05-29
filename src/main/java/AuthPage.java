@@ -11,7 +11,8 @@ public class AuthPage extends BasePage {
 
     final By resendCodeButtonXPath = By.xpath("//div[contains(@class, '_Content_') and text()='Отправить еще раз']");
     private final By personalCabinetLinkXPath = By.xpath("//span[normalize-space(text())='Личный кабинет']");
-    private final By internetBankButtonXPath = By.xpath("//a[.//span[normalize-space(text())='Интернет-банк']]");
+    //    private final By internetBankButtonXPath = By.xpath("//a[.//span[normalize-space(text())='Интернет-банк']]");
+    private final By internetBankButtonXPath = By.xpath("//li[.//a//*[contains(text(), 'Интернет-банк')]]");
     private final By phoneInputXPath = By.xpath("//input[@automation-id='phone-input' and @type='tel']");
     private final By continueButtonXPath = By.xpath("//button[@automation-id='button-submit' and @type='submit']");
     private final By errorMessageXPath = By.xpath("//p[@automation-id='server-error' and contains(text(), 'Некорректный номер телефона')]");

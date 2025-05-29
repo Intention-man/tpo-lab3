@@ -58,8 +58,8 @@ public class FlightsSearchTests extends BaseTest {
         }
     }
 
-    @Test(description = "TC1: Успешный поиск билета в одну сторону")
-    public void testSuccessfulOneWayFlightSearch() {
+    @Test(description = "1. Успешный поиск билета в одну сторону")
+    public void testSuccessfulOneWayFlightSearch(String browser) {
         flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
         flightsSearchPage.enterArrivalCityForSegment(1, SPB_FULL, SPB_SEARCH);
         LocalDate departureDate = LocalDate.now().plusDays(7);
@@ -85,7 +85,7 @@ public class FlightsSearchTests extends BaseTest {
         Assert.assertTrue(currentUrl.matches(".*/flights" + oneWayRegexSegment + MOW_CODE + "-" + LED_CODE + "\\/" + formattedDepartureDate + "/\\?.*"));
     }
 
-    @Test(description = "TC2: Успешный поиск билета туда-обратно (multi-way)")
+    @Test(description = "2. Успешный поиск билета туда-обратно (multi-way)")
     public void testSuccessfulRoundTripFlightSearch() {
         String departureCityCodeForUrl = "MOW";
         String arrivalCityCodeForUrl = "AER";
@@ -130,7 +130,7 @@ public class FlightsSearchTests extends BaseTest {
                 "URL structure for multi-way (round trip) is incorrect.\nExpected pattern: " + regexPattern + "\nActual URL: " + currentUrl);
     }
 
-    @Test(description = "TC3: Попытка поиска без указания города отправления")
+    @Test(description = "3. Попытка поиска без указания города отправления")
     public void testSearchWithoutDepartureCity() {
         flightsSearchPage.clearDepartureCity();
 
@@ -145,7 +145,7 @@ public class FlightsSearchTests extends BaseTest {
                 "Search button should be functionally disabled without departure city.");
     }
 
-    @Test(description = "TC4: Попытка поиска без указания города назначения")
+    @Test(description = "4. Попытка поиска без указания города назначения")
     public void testSearchWithoutArrivalCity() {
         flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
 
@@ -158,7 +158,7 @@ public class FlightsSearchTests extends BaseTest {
                 "Search button should be functionally disabled without departure city.");
     }
 
-    @Test(description = "TC5: Попытка поиска с одинаковыми городами отправления и назначения")
+    @Test(description = "5. Попытка поиска с одинаковыми городами отправления и назначения")
     public void testSearchWithSameDepartureAndArrivalCity() {
         flightsSearchPage.enterDepartureCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
         flightsSearchPage.enterArrivalCityForSegment(1, MOSCOW_FULL, MOSCOW_SEARCH);
@@ -178,7 +178,7 @@ public class FlightsSearchTests extends BaseTest {
                 "Search button should be functionally disabled without departure city.");
     }
 
-    @Test(description = "TC6: Успешный поиск сложного маршрута (2 сегмента)")
+    @Test(description = "6. Успешный поиск сложного маршрута (2 сегмента)")
     public void testSuccessfulComplexRouteTwoSegmentsSearch() {
         LocalDate date1 = LocalDate.now().plusDays(7);
         LocalDate date2 = LocalDate.now().plusDays(14);
